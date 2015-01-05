@@ -8,11 +8,12 @@
 		"js": ["lib/jquery-1.11.2.min.js", "main.js"],
 		"run_at": "document_start"
 	}],  
- "manifest_version": 2,
- "permissions": ["tabs", "contextMenus", "unlimitedStorage", "cookies", "http://*/*", "https://*/*", "file:///*"],
+  "background": {"scripts": ["background.js"] }, 
+  "manifest_version": 2,
+  "permissions": ["tabs", "contextMenus", "unlimitedStorage", "cookies", "http://*/*", "https://*/*", "file:///*"],
   "icons" : {
-    "16" : "media/icon2.png",
-    "48" : "media/icon2.png",
-    "128" : "media/icon2.png"
-  } 
+    	"16" : "media/icon2.png",
+    	"48" : "media/icon2.png",
+    	"128" : "media/icon2.png"
+	} 
 }
