@@ -1,0 +1,18 @@
+{
+  "name": "My tookit for Chrome",
+  "version": "0.1",
+  "description": "An extension that helps improve web-surfing experience",
+  "content_scripts": [
+  	{
+		"matches": ["*://*/*"],
+		"js": ["lib/jquery-1.11.2.min.js", "main.js"],
+		"run_at": "document_start"
+	}],  
+ "manifest_version": 2,
+ "permissions": ["tabs", "contextMenus", "unlimitedStorage", "cookies", "http://*/*", "https://*/*", "file:///*"],
+  "icons" : {
+    "16" : "media/icon2.png",
+    "48" : "media/icon2.png",
+    "128" : "media/icon2.png"
+  } 
+}
