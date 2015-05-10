@@ -1,6 +1,6 @@
 if(/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
 	$.noConflict();
-	// turn off SafeSearch 
+	// turn off SafeSearch
 	if(location.search.indexOf('safe=off')<0) {
 		location.replace(location.href + '&safe=off');
 	}else {
@@ -19,7 +19,7 @@ if(/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
 				var imgurl = decodeURIComponent(this.href.match(/url=[^&]+/)[0].match(/=.+/)[0].substr(1));
 				//this.style.position = 'relative';
 				jQuery(this.parentNode).append('<div style="background-color:white;position:absolute;top:0px" id="' + id + '" onclick="event.cancelBubble=true"><a href="' + imgurl + '" target="_blank">Open image</a></div>')
-			});	
+			});
 		});
 	}
 }
