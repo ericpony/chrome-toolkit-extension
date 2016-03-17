@@ -33,4 +33,15 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     })
   });
+} else if (/^https:\/\/www\.tumblr\.com\/video/.test(location.href)) {
+  window.onload = function () {
+    var videos = document.getElementsByTagName('video');
+    if (videos.length == 1) {
+      var video = videos[0];
+      video.parentNode.onclick = function () {
+        var src = video.firstElementChild.src;
+        document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + src + '"></video>';
+      }
+    }
+  };
 }
