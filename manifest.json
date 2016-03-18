@@ -22,6 +22,7 @@
   },
   "manifest_version": 2,
   "permissions": [
+    "contextMenus",
     "http://*/*",
     "https://*/*",
     "file:///*"
