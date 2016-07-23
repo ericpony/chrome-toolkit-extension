@@ -48,4 +48,23 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     }
   };
+} else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href)) {
+  window.onload = function () {
+    var links = document.getElementsByTagName('a');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
+      var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
+      links[i].target = '_blank';
+      links[i].href = href;
+    }
+  }
+} else if (/^https?:\/\/www\.pixiv\.net/.test(location.href)) {
+  window.onload = function () {
+    var links = document.getElementsByTagName('a');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].href.indexOf('/jump.php') >= 0) {
+        links[i].href = links[i].innerText;
+      }
+    }
+  }
 }
