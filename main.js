@@ -1,3 +1,19 @@
+function observe_DOM (obj, callback) {
+  if (window.MutationObserver) {
+    // define a new observer
+    var obs = new MutationObserver(function (mutations, observer) {
+      if (mutations[0].addedNodes.length || mutations[0].removedNodes.length) {
+        callback();
+      }
+    });
+    // have the observer observe foo for changes in children
+    obs.observe(obj, {childList: true, subtree: true});
+  } else {
+    obj.addEventListener('DOMNodeInserted', callback, false);
+    obj.addEventListener('DOMNodeRemoved', callback, false);
+  }
+}
+
 if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   $.noConflict();
   // turn off SafeSearch
@@ -9,7 +25,6 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       jQuery('._lyb>a').each(function (i, a) {
         if (!/imgurl=([^\&]+)/.test(a.href)) return;
         a.href = RegExp.$1;
-        console.log(a.href);
         a.onmousedown = undefined;
         a.target = '_blank';
       });
@@ -33,31 +48,28 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     })
   });
-} else if (/^https:\/\/www\.tumblr\.com\/video/.test(location.href)) {
-  window.onload = function () {
-    var videos = document.getElementsByTagName('video');
-    if (videos.length == 1) {
-      var video = videos[0];
-      video.parentNode.onclick = function () {
-        if (this.loaded) return;
-        this.loaded = true;
-        var src = video.firstElementChild.src;
-        src = src.replace(/\/\d+$/, '');
-        console.log('Found video ' + src + ' at ' + location.href);
-        document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + src + '"></video>';
-      }
-    }
-  };
 } else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href)) {
   window.onload = function () {
-    var links = document.getElementsByTagName('a');
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
-      var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
-      links[i].target = '_blank';
-      links[i].href = href;
+    var links_offset = 0;
+    var adjust_posts = function () {
+      var links = document.getElementsByTagName('a');
+      for (var i = links_offset; i < links.length; i++) {
+        if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
+        var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
+        links[i].target = '_blank';
+        links[i].href = href;
+      }
+      links_offset = i;
+      var video_shields = document.getElementsByClassName('vjs-big-play-button');
+      while (video_shields.length) video_shields[0].remove();
+    };
+    var posts = document.getElementsByClassName('posts');
+    if (posts.length > 0) {
+      for (var i = 0; i < posts.length; i++) observe_DOM(posts[i], adjust_posts);
+    } else {
+      adjust_posts();
     }
-  }
+  };
 } else if (/^https?:\/\/www\.pixiv\.net/.test(location.href)) {
   window.onload = function () {
     var links = document.getElementsByTagName('a');
