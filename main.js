@@ -49,27 +49,32 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
     })
   });
 } else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href)) {
-  window.onload = function () {
-    var links_offset = 0;
-    var adjust_posts = function () {
-      var links = document.getElementsByTagName('a');
-      for (var i = links_offset; i < links.length; i++) {
-        if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
-        var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
-        links[i].target = '_blank';
-        links[i].href = href;
-      }
-      links_offset = i;
-      var video_shields = document.getElementsByClassName('vjs-big-play-button');
-      while (video_shields.length) video_shields[0].remove();
-    };
-    var posts = document.getElementsByClassName('posts');
-    if (posts.length > 0) {
-      for (var i = 0; i < posts.length; i++) observe_DOM(posts[i], adjust_posts);
-    } else {
-      adjust_posts();
+  var links_offset = 0;
+  var posts_offset = 0;
+  var max_num_adj = 5;
+  var adjust_posts = function () {
+    var links = document.getElementsByTagName('a');
+    for (var i = links_offset; i < links.length; i++) {
+      if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
+      var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
+      links[i].target = '_blank';
+      links[i].href = href;
     }
+    links_offset = i;
+    var posts = document.getElementsByClassName('posts');
+    for (i = posts_offset; i < posts.length; i++) {
+      observe_DOM(posts[i], adjust_posts);
+    }
+    posts_offset = i;
+    var video_shields = document.getElementsByClassName('vjs-big-play-button');
+    while (video_shields.length) video_shields[0].remove();
   };
+  var run_adj = function () {
+    if (max_num_adj-- <= 0)  return;
+    adjust_posts();
+    setTimeout(run_adj, 1000);
+  };
+  run_adj();
 } else if (/^https?:\/\/www\.pixiv\.net/.test(location.href)) {
   window.onload = function () {
     var links = document.getElementsByTagName('a');
