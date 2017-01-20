@@ -50,11 +50,11 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   });
 } else if (/^https?:\/\/www\.tumblr\.com\/video/.test(location.href)) {
   window.onload = function () {
-    var check = function() {
+    var check = function () {
       var videos = document.getElementsByTagName('video');
       var video = videos[0];
       var video_shields = document.getElementsByClassName('vjs-big-play-button');
-      if(!video_shields.length) {
+      if (!video_shields.length) {
         setTimeout(check, 1000);
       } else {
         while (video_shields.length) video_shields[0].remove();
@@ -122,5 +122,53 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
         links[i].href = links[i].innerText;
       }
     }
+  };
+} else if (/^https?:\/\/hbo\.hboav\.com\/api/.test(location.href)
+  || /^https?:\/\/video\.5278\.cc\//.test(location.href)) {
+  var update_title = function () {
+    var key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
+    chrome.storage.local.get(key, function (items) {
+      var title = items[key];
+      if (title) {
+        var a = document.getElementById('download-link');
+        var ext = a.href.substr(0, a.href.indexOf('?')).match(/\.[^\.]+$/)[0];
+        a.innerText = title;
+        a.download = title + ext;
+        chrome.storage.local.remove(key);
+      } else {
+        setTimeout(update_title, 1000);
+      }
+    });
+  };
+  var check = function () {
+    var url, param = document.getElementsByName('flashvars')[0];
+    if (param) {
+      url = decodeURIComponent(param.value).match(/file=.+/)[0].substr(5);
+      if (url) {
+        var title = '';
+        var end = url.indexOf('image=');
+        if (end > 0) { url = url.substr(0, end - 1); }
+        if (!/http/.test(url)) { url = 'http://' + location.host + url; }
+        document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + url + '"></video>'
+          + '<h2 style="position:absolute;top:0px;left:0px;margin:0px;"><a id="download-link" href="' + url
+          + '" target="_blank">Waiting for title...</a></h2>';
+        setTimeout(update_title, 1000);
+      }
+    } else {
+      setTimeout(check, 1000);
+    }
+  };
+  window.onload = function () {
+    check();
   }
+} else if (/^http:\/\/www\.5278\.cc\/forum\.php/.test(location.href)) {
+  window.onload = function () {
+    var header = document.getElementsByClassName('ts')[0];
+    var player = document.getElementById('allmyplayer');
+    if (header && player) {
+      var title = header.innerText.replace(/\s+/g, ' ').trim();
+      var key = '5278.cc - ' + player.src.match(/id=[^&]+/)[0].substr(3);
+      chrome.storage.local.set({[key]: title});
+    }
+  };
 }
