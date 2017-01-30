@@ -50,12 +50,12 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   });
 } else if (/^https?:\/\/www\.tumblr\.com\/video/.test(location.href)) {
   window.onload = function () {
-    var check = function () {
+    var do_check = function () {
       var videos = document.getElementsByTagName('video');
       var video = videos[0];
       var video_shields = document.getElementsByClassName('vjs-big-play-button');
       if (!video_shields.length) {
-        setTimeout(check, 1000);
+        setTimeout(do_check, 1000);
       } else {
         while (video_shields.length) video_shields[0].remove();
         video.parentNode.onclick = function () {
@@ -69,12 +69,11 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
         }
       }
     };
-    check();
+    do_check();
   }
 } else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href) || /^https:\/\/www\.patreon\.com/.test(location.href)) {
   var links_offset = 0;
   var posts_offset = 0;
-  var max_num_adj = 5;
   var adjust_posts = function () {
     var links = document.getElementsByTagName('a');
     if (!links.length) return;
@@ -106,14 +105,7 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
     if (posts) observe_DOM(posts, adjust_posts2);
     adjust_posts2();
   };
-  var run_adj = function () {
-    if (max_num_adj-- <= 0)  return;
-    adjust_posts();
-    //setTimeout(run_adj, 1000);
-  };
-  run_adj();
-} else if (false) {
-
+  adjust_posts();
 } else if (/^https?:\/\/www\.pixiv\.net/.test(location.href)) {
   window.onload = function () {
     var links = document.getElementsByTagName('a');
@@ -123,9 +115,8 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     }
   };
-} else if (/^https?:\/\/hbo\.hboav\.com\/api/.test(location.href)
-  || /^https?:\/\/video\.5278\.cc\//.test(location.href)) {
-  var update_title = function () {
+} else if (/^https?:\/\/video\.5278\.cc\//.test(location.href)) {
+  var do_update = function () {
     var key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
     chrome.storage.local.get(key, function (items) {
       var title = items[key];
@@ -136,11 +127,11 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
         a.download = title + ext;
         chrome.storage.local.remove(key);
       } else {
-        setTimeout(update_title, 1000);
+        setTimeout(do_update, 1000);
       }
     });
   };
-  var check = function () {
+  var do_check = function () {
     var url, param = document.getElementsByName('flashvars')[0];
     if (param) {
       url = decodeURIComponent(param.value).match(/file=.+/)[0].substr(5);
@@ -152,14 +143,60 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
         document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + url + '"></video>'
           + '<h2 style="position:absolute;top:0px;left:0px;margin:0px;"><a id="download-link" href="' + url
           + '" target="_blank">Waiting for title...</a></h2>';
-        setTimeout(update_title, 1000);
+        setTimeout(do_update, 1000);
       }
     } else {
-      setTimeout(check, 1000);
+      setTimeout(do_check, 1000);
     }
   };
   window.onload = function () {
-    check();
+    (function (w) {
+      var arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
+      for (var i = 0, x; x = arr[i]; i++) {
+        if (w['on' + x]) w['on' + x] = null;
+        w.addEventListener(x, function (e) {e.stopPropagation()}, true);
+      }
+    })(window);
+    do_check();
+  }
+} else if (/^https?:\/\/hbo\.hboav\.com\/player\//.test(location.href)) {
+  var updater, do_update = function () {
+    var key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
+    chrome.storage.local.get(key, function (items) {
+      var title = items[key];
+      if (title) {
+        var a = document.getElementById('download-link');
+        var ext = a.href.match(/\.[^\.]+$/)[0];
+        a.innerText = title;
+        a.download = title + ext;
+        chrome.storage.local.remove(key);
+        clearInterval(updater);
+      }
+    });
+  };
+  var checker, do_check = function () {
+    var url = document.getElementsByClassName('jw-preview');
+    if (!url.length) return;
+    url = url[0].style['background-image'].match(/\/[^"]+/)[0];
+    if (!url) return;
+    var ext = url.substr(url.indexOf('/files/') + 7, 3);
+    url = url.substr(0, url.lastIndexOf('.') + 1) + ext;
+    if (!/\/\//.test(url)) { url = '//' + location.host + url; }
+    document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + url + '"></video>'
+      + '<h2 style="position:absolute;top:0px;left:0px;margin:0px;"><a id="download-link" href="' + url
+      + '" target="_blank">Waiting for title...</a></h2>';
+    clearInterval(checker);
+    updater = setInterval(do_update, 1000);
+  };
+  window.onload = function () {
+    (function (w) {
+      var arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
+      for (var i = 0, x; x = arr[i]; i++) {
+        if (w['on' + x]) w['on' + x] = null;
+        w.addEventListener(x, function (e) {e.stopPropagation()}, true);
+      }
+    })(window);
+    checker = setInterval(do_check, 1000);
   }
 } else if (/^http:\/\/www\.5278\.cc\/forum\.php/.test(location.href)) {
   window.onload = function () {
