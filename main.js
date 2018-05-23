@@ -1,7 +1,7 @@
 function observe_DOM (obj, callback) {
   if (window.MutationObserver) {
     // define a new observer
-    var obs = new MutationObserver(function (mutations, observer) {
+    let obs = new MutationObserver(function (mutations, observer) {
       if (mutations[0].addedNodes.length || mutations[0].removedNodes.length) {
         callback();
       }
@@ -29,9 +29,9 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
         a.target = '_blank';
       });
       jQuery('.rg_l').each(function (i) {
-        var id = 'img-link-' + i;
+        let id = 'img-link-' + i;
         if (document.getElementById(id)) return true;
-        var img_url = decodeURIComponent(this.href.match(/url=[^&]+/)[0].match(/=.+/)[0].substr(1));
+        let img_url = decodeURIComponent(this.href.match(/url=[^&]+/)[0].match(/=.+/)[0].substr(1));
         //this.style.position = 'relative';
         jQuery(this.parentNode).append('<div style="background-color:white;position:absolute;top:0px" id="' + id + '" onclick="event.cancelBubble=true"><a href="' + img_url + '" target="_blank">Open image</a></div>')
       });
@@ -50,19 +50,19 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   });
 } else if (/^https?:\/\/www\.tumblr\.com\/video/.test(location.href)) {
   window.onload = function () {
-    var do_check = function () {
-      var videos = document.getElementsByTagName('video');
-      var video = videos[0];
-      var video_shields = document.getElementsByClassName('vjs-big-play-button');
+    let do_check = function () {
+      let videos = document.getElementsByTagName('video');
+      let video = videos[0];
+      let video_shields = document.getElementsByClassName('vjs-big-play-button');
       if (!video_shields.length) {
         setTimeout(do_check, 1000);
       } else {
         while (video_shields.length) video_shields[0].remove();
         video.parentNode.onclick = function () {
           if (this.loaded) return;
-          var node = this.firstChild.firstChild;
+          let node = this.firstChild.firstChild;
           if (!node) return;
-          var src = node.src.replace(/\/\d+$/, '');
+          let src = node.src.replace(/\/\d+$/, '');
           console.log('Found video ' + src + ' at ' + location.href);
           document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + src + '"></video>';
           this.loaded = true;
@@ -71,58 +71,70 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
     };
     do_check();
   }
-} else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href) || /^https:\/\/www\.patreon\.com/.test(location.href)) {
-  var links_offset = 0;
-  var posts_offset = 0;
-  var adjust_posts = function () {
-    var links = document.getElementsByTagName('a');
+} else if (/^https?:\/\/[^\.]+\.tumblr\.com/.test(location.href)
+  || /^https:\/\/www\.patreon\.com/.test(location.href)) {
+  let links_offset = 0;
+  let posts_offset = 0;
+  let get_target = function (url) {
+    get_target.regex = get_target.regex || new RegExp('^https?://t\.umblr\.com/redirect');
+    if (!get_target.regex.test(url)) return null;
+    return decodeURIComponent(url.match(/z=[^&]+/)[0].substr(2));
+  };
+  let adjust_posts = function () {
+    let links = document.getElementsByTagName('a');
     if (!links.length) return;
-    for (var i = links_offset; i < links.length; i++) {
-      if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
-      var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
+    for (let i = links_offset; i < links.length; i++) {
+      let href = get_target(links[i].href);
+      if (!href) continue;
       links[i].target = '_blank';
       links[i].href = href;
     }
-    links_offset = i;
-    var posts = document.getElementsByClassName('posts');
-    for (i = posts_offset; i < posts.length; i++) {
+    links_offset = links.length;
+    let posts = document.getElementsByClassName('posts');
+    for (let i = posts_offset; i < posts.length; i++) {
       observe_DOM(posts[i], adjust_posts);
     }
-    posts_offset = i;
+    posts_offset = posts.length;
   };
-  var adjust_posts2 = function () {
-    var links = document.getElementsByTagName('a');
+  let adj = function () {
+    adjust_posts();
+    adj.timer_id = setTimeout(adj, 1000);
+  };
+  adj();
+  let adjust_posts2 = function () {
+    clearTimeout(adj.timer_id);
+    let links = document.getElementsByTagName('a');
     if (!links.length) return;
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].href.indexOf('http://t.umblr.com/redirect') != 0) continue;
-      var href = decodeURIComponent(links[i].href.match(/z=[^&]+/)[0].substr(2));
+    for (let i = 0; i < links.length; i++) {
+      let href = get_target(links[i].href);
+      if (!href) continue;
       links[i].target = '_blank';
       links[i].href = href;
     }
   };
   window.onload = function () {
-    var posts = document.getElementById('posts');
+    clearTimeout(adj.timer_id);
+    let posts = document.getElementById('posts');
     if (posts) observe_DOM(posts, adjust_posts2);
     adjust_posts2();
   };
-  adjust_posts();
 } else if (/^https?:\/\/www\.pixiv\.net/.test(location.href)) {
   window.onload = function () {
-    var links = document.getElementsByTagName('a');
-    for (var i = 0; i < links.length; i++) {
+    let links = document.getElementsByTagName('a');
+    for (let i = 0; i < links.length; i++) {
       if (links[i].href.indexOf('/jump.php') >= 0) {
         links[i].href = links[i].innerText;
       }
     }
   };
 } else if (/^https?:\/\/video\.5278\.cc\//.test(location.href)) {
-  var do_update = function () {
-    var key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
+  let do_update = function () {
+    let key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
     chrome.storage.local.get(key, function (items) {
-      var title = items[key];
+      let title = items[key];
       if (title) {
-        var a = document.getElementById('download-link');
-        var ext = a.href.substr(0, a.href.indexOf('?')).match(/\.[^\.]+$/)[0];
+        let a = document.getElementById('download-link');
+        let ext = a.href.substr(0, a.href.indexOf('?')).match(/\.[^\.]+$/)[0];
         a.innerText = title;
         a.download = title + ext;
         chrome.storage.local.remove(key);
@@ -131,13 +143,13 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     });
   };
-  var do_check = function () {
-    var url, param = document.getElementsByName('flashvars')[0];
+  let do_check = function () {
+    let url, param = document.getElementsByName('flashvars')[0];
     if (param) {
       url = decodeURIComponent(param.value).match(/file=.+/)[0].substr(5);
       if (url) {
-        var title = '';
-        var end = url.indexOf('image=');
+        let title = '';
+        let end = url.indexOf('image=');
         if (end > 0) { url = url.substr(0, end - 1); }
         if (!/http/.test(url)) { url = 'http://' + location.host + url; }
         document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + url + '"></video>'
@@ -151,8 +163,8 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   };
   window.onload = function () {
     (function (w) {
-      var arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
-      for (var i = 0, x; x = arr[i]; i++) {
+      let arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
+      for (let i = 0, x; x = arr[i]; i++) {
         if (w['on' + x]) w['on' + x] = null;
         w.addEventListener(x, function (e) {e.stopPropagation()}, true);
       }
@@ -160,13 +172,13 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
     do_check();
   }
 } else if (/^https?:\/\/hbo\.hboav\.com\/player\//.test(location.href)) {
-  var updater, do_update = function () {
-    var key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
+  let updater, do_update = function () {
+    let key = '5278.cc - ' + location.href.match(/id=[^&]+/)[0].substr(3);
     chrome.storage.local.get(key, function (items) {
-      var title = items[key];
+      let title = items[key];
       if (title) {
-        var a = document.getElementById('download-link');
-        var ext = a.href.match(/\.[^\.]+$/)[0];
+        let a = document.getElementById('download-link');
+        let ext = a.href.match(/\.[^\.]+$/)[0];
         a.innerText = title;
         a.download = title + ext;
         chrome.storage.local.remove(key);
@@ -174,12 +186,12 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
       }
     });
   };
-  var checker, do_check = function () {
-    var url = document.getElementsByClassName('jw-preview');
+  let checker, do_check = function () {
+    let url = document.getElementsByClassName('jw-preview');
     if (!url.length) return;
     url = url[0].style['background-image'].match(/\/[^"]+/)[0];
     if (!url) return;
-    var ext = url.substr(url.indexOf('/files/') + 7, 3);
+    let ext = url.substr(url.indexOf('/files/') + 7, 3);
     url = url.substr(0, url.lastIndexOf('.') + 1) + ext;
     if (!/\/\//.test(url)) { url = '//' + location.host + url; }
     document.body.innerHTML = '<video style="width:100%;height:100%;margin:0px" controls loop src="' + url + '"></video>'
@@ -190,8 +202,8 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   };
   window.onload = function () {
     (function (w) {
-      var arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
-      for (var i = 0, x; x = arr[i]; i++) {
+      let arr = ['contextmenu', 'click', 'mousedown', 'mouseup'];
+      for (let i = 0, x; x = arr[i]; i++) {
         if (w['on' + x]) w['on' + x] = null;
         w.addEventListener(x, function (e) {e.stopPropagation()}, true);
       }
@@ -200,12 +212,27 @@ if (/^https:\/\/www.google.[^\/]+\/search/.test(location.href)) {
   }
 } else if (/^http:\/\/www\.5278\.cc\/forum\.php/.test(location.href)) {
   window.onload = function () {
-    var header = document.getElementsByClassName('ts')[0];
-    var player = document.getElementById('allmyplayer');
+    let header = document.getElementsByClassName('ts')[0];
+    let player = document.getElementById('allmyplayer');
     if (header && player) {
-      var title = header.innerText.replace(/\s+/g, ' ').trim();
-      var key = '5278.cc - ' + player.src.match(/id=[^&]+/)[0].substr(3);
+      let title = header.innerText.replace(/\s+/g, ' ').trim();
+      let key = '5278.cc - ' + player.src.match(/id=[^&]+/)[0].substr(3);
       chrome.storage.local.set({[key]: title});
     }
   };
+  // Cannot put the following code in the content script of the uploader extension
+  // because that script is only loaded once per page and won't be loaded
+  // when a new page is opened programatically in an iframe of the page
+} else if (/^https:\/\/chan\.sankakucomplex\.com\/j?a?\/?post\/show\/\d+/.test(location.href)) {
+  if (location.search.match(/download=([^&]+)/)) {
+    window.stop();
+    let urls_str = RegExp.$1;
+    chrome.runtime.sendMessage(
+      'boodphggedgghemdpdnepadfkohfadfg',
+      {
+        download: true,
+        wait: 3000,
+        urls: decodeURIComponent(urls_str).replace(/amp;/g, '')
+      });
+  }
 }
